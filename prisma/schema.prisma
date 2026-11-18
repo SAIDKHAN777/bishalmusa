@@ -1,0 +1,404 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  REPLIED
+  SPAM
+}
+
+enum MediaType {
+  IMAGE
+  PDF
+  OTHER
+}
+
+enum ClickType {
+  LIVE
+  GITHUB
+  DETAILS
+  DEMO
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  role             Role      @default(ADMIN)
+  lastLoginAt      DateTime?
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  sessions         Session[]
+  media            Media[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  ipHash    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([tokenHash])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  projects    Project[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([slug])
+}
+
+model Project {
+  id               String         @id @default(cuid())
+  title            String
+  slug             String         @unique
+  shortDescription String?
+  summary          String         @default("")
+  fullDescription  String?        @db.Text
+  description      String         @db.Text
+  thumbnailUrl     String?
+  coverImageUrl    String?
+  images           String[]       @default([])
+  techStack        String[]       @default([])
+  liveUrl          String?
+  demoUrl          String?
+  githubUrl        String?
+  categoryId       String?
+  category         Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  isFeatured       Boolean        @default(false)
+  featured         Boolean        @default(false)
+  order            Int            @default(0)
+  status           Status         @default(DRAFT)
+  publishedAt      DateTime?
+  tags             String[]       @default([])
+  viewsCount       Int            @default(0)
+  clicksCount      Int            @default(0)
+  clicks           ProjectClick[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([order])
+  @@index([featured, status])
+  @@index([categoryId])
+}
+
+model BlogPost {
+  id                 String    @id @default(cuid())
+  title              String
+  slug               String    @unique
+  excerpt            String?
+  summary            String?
+  content            String    @db.Text
+  coverImageUrl      String?
+  status             Status    @default(DRAFT)
+  publishedAt        DateTime?
+  seoTitle           String?
+  seoDescription     String?
+  metaTitle          String?
+  metaDescription    String?
+  canonicalUrl       String?
+  readingTime        Int       @default(1)
+  readingTimeMinutes Int       @default(1)
+  viewCount          Int       @default(0)
+  tags               Tag[]     @relation("BlogPostTags")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  posts     BlogPost[] @relation("BlogPostTags")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([slug])
+}
+
+model Skill {
+  id               String    @id @default(cuid())
+  name             String
+  level            Int       @default(80)
+  proficiencyLevel Int       @default(80)
+  category         String
+  icon             String?
+  iconUrl          String?
+  order            Int       @default(0)
+  isVisible        Boolean   @default(true)
+  featured         Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@index([category])
+  @@index([order])
+  @@index([isVisible])
+  @@index([featured])
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String?   @unique
+  description String    @db.Text
+  icon        String?
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true)
+  active      Boolean   @default(true)
+  features    String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([slug])
+  @@index([order])
+  @@index([isVisible])
+  @@index([active])
+}
+
+model Experience {
+  id             String    @id @default(cuid())
+  title          String?
+  role           String    @default("Software Engineer")
+  company        String
+  location       String?
+  startDate      DateTime
+  endDate        DateTime?
+  isCurrent      Boolean   @default(false)
+  description    String    @db.Text
+  order          Int       @default(0)
+  employmentType String?   @default("Full-time")
+  technologies   String[]  @default([])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  @@index([startDate])
+  @@index([order])
+}
+
+model Education {
+  id           String    @id @default(cuid())
+  degree       String
+  institute    String?
+  institution  String    @default("University")
+  fieldOfStudy String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String?   @db.Text
+  grade        String?
+  activities   String?
+  order        Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([startDate])
+  @@index([order])
+}
+
+model Testimonial {
+  id              String         @id @default(cuid())
+  clientName      String?
+  clientRole      String?
+  company         String?
+  authorName      String         @default("Client")
+  authorTitle     String         @default("Client")
+  authorCompany   String?
+  authorAvatarUrl String?
+  message         String?        @db.Text
+  content         String         @db.Text
+  avatarUrl       String?
+  rating          Int            @default(5)
+  isApproved      Boolean        @default(true)
+  featured        Boolean        @default(false)
+  status          ApprovalStatus @default(APPROVED)
+  order           Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  @@index([isApproved])
+  @@index([status])
+  @@index([featured])
+  @@index([order])
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String        @db.Text
+  status    MessageStatus @default(NEW)
+  ipHash    String?
+  userAgent String?
+  isSpam    Boolean       @default(false)
+  isRead    Boolean       @default(false)
+  repliedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([isSpam])
+}
+
+model Media {
+  id           String    @id @default(cuid())
+  publicId     String    @unique
+  url          String
+  type         MediaType @default(IMAGE)
+  mimeType     String    @default("image/png")
+  size         Int       @default(0)
+  width        Int?
+  height       Int?
+  alt          String?
+  folder       String?   @default("portfolio")
+  secureUrl    String    @default("")
+  format       String    @default("png")
+  resourceType String    @default("image")
+  byteSize     Int       @default(0)
+  altText      String?
+  uploadedById String?
+  uploadedBy   User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([publicId])
+  @@index([type])
+}
+
+model SiteSetting {
+  id                    String   @id @default("default")
+  heroTitle             String?  @default("Senior Full-Stack Engineer & System Architect")
+  heroSubtitle          String?  @default("Building scalable high-performance web systems and AI applications.")
+  siteName              String   @default("Said Khan Portfolio")
+  tagline               String?
+  bio                   String?  @db.Text
+  email                 String?  @default("admin@saidkhan.dev")
+  contactEmail          String   @default("contact@saidkhan.dev")
+  phone                 String?
+  location              String?
+  socialLinks           Json?
+  portfolioConfig       Json?
+  resumeUrl             String?
+  defaultSeoTitle       String?  @default("Said Khan | Senior Software Engineer")
+  defaultSeoDescription String?  @default("Personal portfolio, projects, and engineering thoughts of Said Khan.")
+  defaultOgImage        String?
+  seoTitle              String?
+  seoDescription        String?
+  turnstileEnabled      Boolean  @default(false)
+  maintenanceMode       Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model PageView {
+  id            String   @id @default(cuid())
+  path          String
+  referrer      String?
+  country       String?
+  device        String?
+  visitorHash   String?
+  ipHash        String   @default("")
+  userAgentHash String?
+  timestamp     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([path])
+  @@index([timestamp])
+}
+
+model ProjectClick {
+  id        String    @id @default(cuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      ClickType @default(LIVE)
+  ipHash    String?
+  timestamp DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@index([timestamp])
+}
+
+model ResumeDownload {
+  id          String   @id @default(cuid())
+  visitorHash String?
+  ipHash      String   @default("")
+  referrer    String?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([timestamp])
+}

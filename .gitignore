@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# Build Outputs
+dist/
+frontend/dist/
+.astro/
+.wrangler/
+build/
+*.tsbuildinfo
+
+# Environment Variables and Secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.pem
+*.key
+*.cert
+
+# Local Runtime Uploads
+uploads/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Testing, Coverage, and Local Reports
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+reports/
+
+# Internal Scratch and Prompt Notes
+portfolio-backend-master-prompt.txt
+portfolio-database-master-prompt.txt
+.specify/
+specs/
+constitution.md
+spec.md
+plan.md
+tasks.md
+
+# OS and Editor Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary Files and Database Dumps
+*.dump
+*.sql.gz
+*.sql.bak
+tmp/
+temp/

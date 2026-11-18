@@ -1,0 +1,31 @@
+---
+import SEO from '../components/SEO.astro';
+
+export const prerender = false;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <SEO
+      title="Said Khan | Senior Software Engineer & Backend Architect"
+      description="Enterprise portfolio, distributed systems, Node.js, Astro, PostgreSQL, Redis, and high-performance microservices."
+    />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+    <main class="max-w-xl text-center space-y-4">
+      <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+        Said Khan Backend Platform
+      </h1>
+      <p class="text-slate-400 text-lg">
+        Enterprise-grade Astro hybrid backend with PostgreSQL, Redis, BullMQ, and Pino logging.
+      </p>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        System Operational
+      </div>
+    </main>
+  </body>
+</html>

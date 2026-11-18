@@ -1,0 +1,18 @@
+---
+import { AdminDashboard } from '../../components/admin/AdminDashboard';
+
+export const prerender = false;
+const user = (Astro.locals as any).user;
+---
+
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Dashboard | Said Khan CMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <AdminDashboard client:load user={user} />
+  </body>
+</html>
