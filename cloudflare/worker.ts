@@ -494,17 +494,17 @@ async function ensureSeeded(env: Env): Promise<void> {
       .run();
   }
 
-  // 2. Seed starter works ONLY when works table is completely empty
+  // 2. Seed starter works idempotently ONLY when works table is completely empty
   const worksCount = await env.DB.prepare('SELECT COUNT(*) AS cnt FROM works').first<{
     cnt: number;
   }>();
   if (!worksCount || worksCount.cnt === 0) {
     const statements = STARTER_WORKS.map((w, idx) =>
       env.DB.prepare(
-        `INSERT INTO works (id, category_id, title, work_url, thumbnail_url, caption, status, tags_json, sort_order, created_at, updated_at)
+        `INSERT OR IGNORE INTO works (id, category_id, title, work_url, thumbnail_url, caption, status, tags_json, sort_order, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, 'published', ?, ?, ?, ?)`
       ).bind(
-        `work_${crypto.randomUUID().slice(0, 12)}`,
+        `starter_work_${idx + 1}`,
         w.categoryId,
         w.title,
         w.workUrl ?? null,
@@ -675,6 +675,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
 
   // --- Public Portfolio Bootstrap ---
   if (pathname === '/api/portfolio/public' && method === 'GET') {
+    await ensureSeeded(env);
     const [siteConfig, works] = await Promise.all([getSiteConfig(env), listWorks(env, false)]);
     return jsonResponse({ success: true, data: { siteConfig, works } });
   }
